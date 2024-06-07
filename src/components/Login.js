@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import Header from "./Header";
 import { checkValidData } from "../utils/validate";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword  } from "firebase/auth";
+import { auth } from "../utils/firebase";
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
@@ -19,6 +21,35 @@ const Login = () => {
 
     const message = checkValidData(email.current.value, password.current.value);
     setErrorMessage(message);
+
+    if (message) return; // return if any error
+
+    // *** Sign up , sign in authentication logic with firebase ***
+    if (!isSignInForm) {
+      createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
+        .then((userCredential) => {
+          // Signed up 
+          const user = userCredential.user;
+          console.log(user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + ' ' + errorMessage);
+        });
+
+    } else {
+      signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+        .then((userCredential) => {
+          // Signed in 
+          const user = userCredential.user;
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + ' ' + errorMessage);
+        });
+    }
   }
 
   return (
@@ -29,7 +60,7 @@ const Login = () => {
         <img className="w-full h-[100vh] object-cover" src="https://assets.nflxext.com/ffe/siteui/vlv3/dd4dfce3-1a39-4b1a-8e19-b7242da17e68/86742114-c001-4800-a127-c9c89ca7bbe4/IN-en-20240527-popsignuptwoweeks-perspective_alpha_website_large.jpg" alt="bg_img" />
       </div>
 
-      <form 
+      <form
         onSubmit={(e) => e.preventDefault()}
         className="w-[30%] absolute bg-black bg-opacity-40 mt-20 p-10 left-0 right-0 mx-auto"
       >
@@ -58,7 +89,7 @@ const Login = () => {
         />
 
         <p className="text-red-500 font-semibold">{errorMessage}</p>
-        
+
         <button
           className="w-full p-2 mt-4 bg-red-600 text-white font-bold rounded "
           onClick={handleButtonClick}
